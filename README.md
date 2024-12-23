@@ -16,7 +16,7 @@
    - Create the `app-backend/.env` file and fill in the necessary values.
    - Create the `app-frontend/.env` file and fill in the necessary values. Example content:
      ```env
-     API_BASE_URL=http://localhost:3000
+     VITE_API_BASE_URL=http://localhost:3000
      ```
 
 ### Running the Project with Docker

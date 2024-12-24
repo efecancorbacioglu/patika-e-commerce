@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProductsPage from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import DefaultLayout from "./layouts/default";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -20,6 +21,7 @@ function App() {
       <Route path="/" element={<ProtectedRoute><DefaultLayout><HomePage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><DefaultLayout><ProductsPage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><DefaultLayout><CartPage /></DefaultLayout></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><DefaultLayout><ProfilePage /></DefaultLayout></ProtectedRoute>} />
     </Routes>
   );
 }

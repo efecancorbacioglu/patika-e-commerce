@@ -7,6 +7,7 @@ function Navbar() {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate("/login")
     }
 
@@ -27,6 +28,9 @@ function Navbar() {
                     </li>
                     <li className="navbar-item">
                         <Link to="/cart" className="navbar-link">Cart</Link>
+                    </li>
+                    <li className="navbar-item">
+                        <Link to="/profile" className="navbar-link">Profile</Link>
                     </li>
                     <li className="navbar-item md:ml-auto">
                         <button onClick={handleLogout} className="navbar-link">Log Out</button>

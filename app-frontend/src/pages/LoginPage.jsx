@@ -28,9 +28,11 @@ function Login() {
             });
 
             const token = response.data?.response?.token;
-
+            const user = response.data?.response?.user;
+            
             if (token) {
                 localStorage.setItem("token", token);
+                localStorage.setItem("user", JSON.stringify(user));
                 navigate("/");
             } else {
                 setError("Token could not be retrieved.");

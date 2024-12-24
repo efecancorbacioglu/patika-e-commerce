@@ -11,7 +11,7 @@ function Register() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false); // Loading state
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -38,9 +38,10 @@ function Register() {
             });
 
             const token = response.data?.response?.token;
-
+            const user = response.data?.response?.user;
             if (token) {
                 localStorage.setItem("token", token);
+                localStorage.setItem("user", JSON.stringify(user));
                 navigate("/");
             } else {
                 setError("Token could not be retrieved.");

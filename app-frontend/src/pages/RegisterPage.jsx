@@ -11,10 +11,12 @@ function Register() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false); // Loading state
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
 
         if (!name || !surname || !email || !password || !confirmPassword) {
             setError("All fields are required.");
@@ -26,22 +28,30 @@ function Register() {
             return;
         }
 
+        setLoading(true);
         try {
             const response = await axios.post("/api/auth/register", {
-                name,
-                surname,
-                email,
+                name: name.trim(),
+                surname: surname.trim(),
+                email: email.trim(),
                 password,
             });
 
-            const { user } = response.data;
+            const token = response.data?.response?.token;
 
-            if (user) {
+            if (token) {
+                localStorage.setItem("token", token);
                 navigate("/");
+            } else {
+                setError("Token could not be retrieved.");
             }
+            
         } catch (err) {
-            console.error(err);
-            setError("Registration failed. Please try again.");
+            setError(
+                err.response?.data?.response?.message || "Registration failed. Please try again."
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -51,33 +61,23 @@ function Register() {
                 <h1 className="text-2xl font-bold text-center mb-4">Create Account</h1>
                 <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
                     {/* Name */}
-                    <div>
-                        <Input
-                            label="Name"
-                            id="name"
-                            type="text"
-                            placeholder="Name"
-                            value={name}
-                            onChange={(e) => {
-                                setName(e.target.value);
-                                setError(""); // Clear error on input change
-                            }}
-                        />
-                    </div>
+                    <Input
+                        label="Name"
+                        id="name"
+                        type="text"
+                        placeholder="Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
                     {/* Surname */}
-                    <div>
-                        <Input
-                            label="Surname"
-                            id="surname"
-                            type="text"
-                            placeholder="Surname"
-                            value={surname}
-                            onChange={(e) => {
-                                setSurname(e.target.value);
-                                setError(""); // Clear error on input change
-                            }}
-                        />
-                    </div>
+                    <Input
+                        label="Surname"
+                        id="surname"
+                        type="text"
+                        placeholder="Surname"
+                        value={surname}
+                        onChange={(e) => setSurname(e.target.value)}
+                    />
                     {/* Email */}
                     <div className="md:col-span-2">
                         <Input
@@ -86,47 +86,37 @@ function Register() {
                             type="email"
                             placeholder="Email"
                             value={email}
-                            onChange={(e) => {
-                                setEmail(e.target.value);
-                                setError(""); // Clear error on input change
-                            }}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="md:col-span-2"
                         />
                     </div>
                     {/* Password */}
-                    <div>
-                        <Input
-                            label="Password"
-                            id="password"
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                setError(""); // Clear error on input change
-                            }}
-                        />
-                    </div>
+                    <Input
+                        label="Password"
+                        id="password"
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                     {/* Confirm Password */}
-                    <div>
-                        <Input
-                            label="Confirm Password"
-                            id="confirmPassword"
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value);
-                                setError(""); // Clear error on input change
-                            }}
-                        />
-                    </div>
+                    <Input
+                        label="Confirm Password"
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                     {/* Error Message */}
                     {error && (
                         <p className="md:col-span-2 text-red-500 text-sm text-center">{error}</p>
                     )}
                     {/* Submit Button */}
                     <div className="md:col-span-2">
-                        <Button type="submit">Register</Button>
+                        <Button type="submit" disabled={loading} className="md:col-span-2">
+                            {loading ? "Registering..." : "Register"}
+                        </Button>
                     </div>
                 </form>
                 <p className="text-center text-sm text-gray-600 mt-4">

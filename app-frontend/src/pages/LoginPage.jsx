@@ -8,32 +8,40 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('email', email)
-        console.log('pass', password)       
-       
-         if (!email || !password) {
-            alert('hata')
+        setError("");
+
+        if (!email || !password) {
             setError("Email and password cannot be empty.");
             return;
         }
 
+        setLoading(true);
         try {
             const response = await axios.post("/api/auth/login", {
-                email,
+                email: email.trim(),
                 password,
             });
-            const { token } = response.data;
 
-            localStorage.setItem("token", token);
+            const token = response.data?.response?.token;
 
-            navigate("/");
+            if (token) {
+                localStorage.setItem("token", token);
+                navigate("/");
+            } else {
+                setError("Token could not be retrieved.");
+            }
+            
         } catch (err) {
-            console.error(err);
-            setError("Invalid email or password. Please try again.");
+            setError(
+                err.response?.data?.response?.message || "Invalid email or password. Please try again."
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -61,7 +69,9 @@ function Login() {
                     {error && (
                         <p className="text-red-500 text-sm">{error}</p>
                     )}
-                    <Button type="submit">Login</Button>
+                    <Button type="submit" disabled={loading}>
+                        {loading ? "Logging in..." : "Login"}
+                    </Button>
                 </form>
                 <p className="text-center text-sm text-gray-600 mt-4">
                     Don't you have an account?{" "}

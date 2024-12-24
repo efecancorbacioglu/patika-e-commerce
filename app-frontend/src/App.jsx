@@ -6,18 +6,20 @@ import ProductsPage from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
 
 import DefaultLayout from "./layouts/default";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import PublicRoute from "./components/common/PublicRoute";
 
 function App() {
   return (
     <Routes>
       {/* Login ve Register sayfaları Layout olmadan */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
 
       {/* Layout kullanılan sayfalar */}
-      <Route path="/" element={<DefaultLayout><HomePage /></DefaultLayout>} />
-      <Route path="/products" element={<DefaultLayout><ProductsPage /></DefaultLayout>} />
-      <Route path="/cart" element={<DefaultLayout><CartPage /></DefaultLayout>} />
+      <Route path="/" element={<ProtectedRoute><DefaultLayout><HomePage /></DefaultLayout></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><DefaultLayout><ProductsPage /></DefaultLayout></ProtectedRoute>} />
+      <Route path="/cart" element={<ProtectedRoute><DefaultLayout><CartPage /></DefaultLayout></ProtectedRoute>} />
     </Routes>
   );
 }

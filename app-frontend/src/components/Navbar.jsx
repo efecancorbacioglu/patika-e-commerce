@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
     const [isMenuActive, setIsMenuActive] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        navigate("/login")
+    }
+
     return (
         <nav id="navbar">
-            <div className="navbar-wrapper container">
+            <div className="navbar-wrapper mx-auto md:container">
                 <Link to="/" className="navbar-brand">Efe'Store</Link>
                 <button id="btn-hamburger" onClick={() => setIsMenuActive(!isMenuActive)}>
                     <span className="material-symbols-outlined"> menu </span>
                 </button>
 
-                <ul className={`navbar-menu ${isMenuActive ? 'active' : ''}`}>
+                <ul className={`navbar-menu ${isMenuActive ? 'active' : ''} flex-1`}>
                     <li className="navbar-item">
                         <Link to="/" className="navbar-link">Home</Link>
                     </li>
@@ -20,6 +27,9 @@ function Navbar() {
                     </li>
                     <li className="navbar-item">
                         <Link to="/cart" className="navbar-link">Cart</Link>
+                    </li>
+                    <li className="navbar-item md:ml-auto">
+                        <button onClick={handleLogout} className="navbar-link">Log Out</button>
                     </li>
                 </ul>
             </div>

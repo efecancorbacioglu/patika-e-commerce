@@ -49,9 +49,25 @@ async function deleteOrder(orderId) {
   }
 }
 
+async function updateOrderStatus(orderId, paymentStatus) {
+  try {
+    const updatedOrder = await mongooseOrder.findByIdAndUpdate(
+      orderId,
+      { paymentStatus },
+      { new: true }
+    );
+    return updatedOrder;
+  } catch (e) {
+    console.error("Order status update error:", e);
+    throw new Error("Order status update failed.");
+  }
+}
+
+
 module.exports = {
   createOrder,
   getAllOrders,
   getOrderById,
   deleteOrder,
+  updateOrderStatus
 };

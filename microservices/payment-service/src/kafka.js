@@ -9,15 +9,6 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: "payment-group" });
 
-const connectProducer = async () => {
-  try {
-    await producer.connect();
-    console.log("Kafka producer connected in payment-service");
-  } catch (error) {
-    console.error("Producer connection failed:", error);
-  }
-};
-
 const sendMessage = async (topic, message) => {
   try {
     await producer.send({
@@ -39,25 +30,24 @@ const consumeMessages = async () => {
       eachMessage: async ({ topic, partition, message }) => {
         const { orderId, userId, amount } = JSON.parse(message.value.toString());
 
-        console.log("Payment request received:", { orderId, userId, amount });
 
         const paymentStatus = "success";
 
-        const paymentRecord = new Payment({
-          userId,
-          amount,
-          status: paymentStatus,
-        });
-        await paymentRecord.save();
+        try {
+          const paymentRecord = new Payment({
+            userId,
+            amount,
+            status: paymentStatus,
+          });
+          await paymentRecord.save();
 
-        await sendMessage("payment-success", {
-          orderId,
-          userId,
-          amount,
-          status: paymentStatus,
-        });
+          await sendMessage("order-topic", { orderId, paymentStatus });
+          await sendMessage("invoice-topic", { orderId, userId, amount, paymentStatus });
 
-        console.log("Payment processed and success message sent.");
+        } catch (error) {
+          console.error("Error processing payment:", error);
+          await sendMessage("order-topic", { orderId, paymentStatus: "failed" });
+        }
       },
     });
   } catch (error) {
@@ -65,4 +55,4 @@ const consumeMessages = async () => {
   }
 };
 
-module.exports = { connectProducer, sendMessage, consumeMessages };
+module.exports = { sendMessage, consumeMessages };

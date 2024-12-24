@@ -1,4 +1,5 @@
-const { Kafka } = require('kafkajs');
+const { Kafka, Partitioners } = require('kafkajs');
+const orderService = require('../services/orderService');
 
 // Kafka bağlantısı
 const kafka = new Kafka({
@@ -6,14 +7,15 @@ const kafka = new Kafka({
   brokers: ['kafka:9092'], // Kafka broker adresi
 });
 
-const producer = kafka.producer();
+const consumer = kafka.consumer({ groupId: "order-group" });
+const producer = kafka.producer({
+  createPartitioner: Partitioners.LegacyPartitioner,
+});
 
 const sendMessage = async (topic, message) => {
   try {
     await producer.connect();
-    console.log('topic:',topic)
-    console.log('girdik')
-    console.log(`Producer connected for topic ${topic}`);
+
     await producer.send({
       topic,
       messages: [{ value: JSON.stringify(message) }],
@@ -25,5 +27,26 @@ const sendMessage = async (topic, message) => {
   }
 };
 
+const consumeMessages = async () => {
+  await consumer.connect();
 
-module.exports = sendMessage;
+  await consumer.subscribe({ topic: "order-topic", fromBeginning: true });
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      const { orderId, paymentStatus } = JSON.parse(message.value.toString());
+
+      console.log("Payment status update received:", { orderId, paymentStatus });
+
+      try {
+        // Siparişin ödeme durumunu güncelle
+        await orderService.updateOrderStatus(orderId, paymentStatus);
+        console.log(`Order ${orderId} updated to ${paymentStatus}.`);
+      } catch (error) {
+        console.error("Error updating order status:", error);
+      }
+    },
+  });
+};
+
+module.exports = { consumeMessages, sendMessage };

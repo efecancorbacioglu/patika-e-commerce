@@ -1,9 +1,9 @@
 const { Kafka } = require("kafkajs");
-const Invoice = require("./models/invoiceModel"); // Fatura modeli eklendi
+const Invoice = require("./models/invoiceModel");
 
 const kafka = new Kafka({
   clientId: "invoice-service",
-  brokers: ["kafka:9092"], // Kafka broker adresi
+  brokers: ["kafka:9092"],
 });
 
 const consumer = kafka.consumer({ groupId: "invoice-group" });
@@ -13,36 +13,43 @@ const connectConsumer = async () => {
     await consumer.connect();
     console.log("Kafka consumer connected in invoice-service");
   } catch (error) {
-    console.error("Consumer connection failed:", error);
+    console.error("Error connecting Kafka consumer:", error);
   }
 };
 
-const subscribeToTopic = async (topic, callback) => {
+const subscribeToTopic = async (topic) => {
   try {
     await consumer.subscribe({ topic, fromBeginning: true });
 
     await consumer.run({
-      eachMessage: async ({ message }) => {
-        console.log(`Message received from topic ${topic}:`, message.value.toString());
-        const paymentInfo = JSON.parse(message.value.toString());
+      eachMessage: async ({ topic, partition, message }) => {
+        const { orderId, userId, amount, paymentStatus } = JSON.parse(
+          message.value.toString()
+        );
 
-        // Fatura oluştur ve MongoDB'ye kaydet
-        const invoice = new Invoice({
-          orderId: paymentInfo.orderId || null,
-          userId: paymentInfo.userId,
-          amount: paymentInfo.amount,
-          invoiceNumber: `INV-${Date.now()}`,
-        });
+        if (paymentStatus !== "success") {
+          console.log(`Payment failed for order ${orderId}. Invoice not created.`);
+          return;
+        }
 
-        await invoice.save();
-        console.log("Invoice saved to database:", invoice);
+        // Faturayı MongoDB'ye kaydet
+        try {
+          const invoice = new Invoice({
+            orderId,
+            userId,
+            amount,
+            invoiceNumber: `INV-${Date.now()}`,
+          });
 
-        // Gelen mesajı callback ile işleme
-        callback(paymentInfo);
+          await invoice.save();
+          console.log("Invoice saved to database:", invoice);
+        } catch (error) {
+          console.error("Error saving invoice:", error);
+        }
       },
     });
   } catch (error) {
-    console.error("Error while subscribing to topic or processing messages:", error);
+    console.error("Error subscribing to topic:", error);
   }
 };
 

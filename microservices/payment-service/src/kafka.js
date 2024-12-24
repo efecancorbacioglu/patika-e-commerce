@@ -9,6 +9,16 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: "payment-group" });
 
+const connectProducer = async () => {
+  try {
+    await producer.connect();
+    console.log("Kafka producer connected in payment-service");
+  } catch (error) {
+    console.error("Producer connection failed:", error);
+    process.exit(1); // Eğer bağlantı olmazsa uygulamayı durdur.
+  }
+};
+
 const sendMessage = async (topic, message) => {
   try {
     await producer.send({
@@ -30,7 +40,6 @@ const consumeMessages = async () => {
       eachMessage: async ({ topic, partition, message }) => {
         const { orderId, userId, amount } = JSON.parse(message.value.toString());
 
-
         const paymentStatus = "success";
 
         try {
@@ -43,7 +52,6 @@ const consumeMessages = async () => {
 
           await sendMessage("order-topic", { orderId, paymentStatus });
           await sendMessage("invoice-topic", { orderId, userId, amount, paymentStatus });
-
         } catch (error) {
           console.error("Error processing payment:", error);
           await sendMessage("order-topic", { orderId, paymentStatus: "failed" });
@@ -55,4 +63,4 @@ const consumeMessages = async () => {
   }
 };
 
-module.exports = { sendMessage, consumeMessages };
+module.exports = { connectProducer, sendMessage, consumeMessages };

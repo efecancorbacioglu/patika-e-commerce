@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "../utils/axios";
-import ProductList from "../components/products/ProductList";
+import axios from "../../utils/axios";
+import ProductList from "../../components/products/ProductList";
 
 const mockCategories = ["Electronics", "Wearable", "Fitness"];
 
@@ -13,7 +13,7 @@ function Products() {
     const fetchProducts = async () => {
         try {
             const response = await axios.get("/api/product");
-            console.log(response.data.response);
+            console.log(response.data.response[0]._id);
             setProducts(response.data.response); // Backend'den dönen ürünleri set ediyoruz
             setLoading(false);
         } catch (err) {

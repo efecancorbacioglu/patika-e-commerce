@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ProductsPage from "./pages/ProductsPage";
+import ProductsPage from "./pages/products/indexPage";
+import ProductDetails from './pages/products/productDetailsPage'
 import CartPage from "./pages/CartPage";
 import ProfilePage from "./pages/ProfilePage";
 
@@ -20,6 +21,7 @@ function App() {
       {/* Layout kullanılan sayfalar */}
       <Route path="/" element={<ProtectedRoute><DefaultLayout><HomePage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><DefaultLayout><ProductsPage /></DefaultLayout></ProtectedRoute>} />
+      <Route path="/products/:id" element={<ProtectedRoute><DefaultLayout><ProductDetails /></DefaultLayout></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><DefaultLayout><CartPage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><DefaultLayout><ProfilePage /></DefaultLayout></ProtectedRoute>} />
     </Routes>

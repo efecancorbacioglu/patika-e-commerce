@@ -1,31 +1,57 @@
-import { useState } from "react";
-
-const initialCart = [
-  {
-    id: 1,
-    title: "Wireless Headphones",
-    price: 99.99,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
-    quantity: 1,
-  },
-];
+import { useState, useEffect } from "react";
+import axios from "../utils/axios";
+import Button from "../components/ui/Button";
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState(initialCart);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleQuantityChange = (id, delta) => {
-    setCartItems((prevCart) =>
-      prevCart.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
+  const fetchCart = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("api/basket/get"); 
+      const cart = response.data || []
+      console.log(cart);
+      setCartItems(cart);
+    } catch (error) {
+      console.error("Sepet verisi alınamadı:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemoveItem = (id) => {
-    setCartItems((prevCart) => prevCart.filter((item) => item.id !== id));
+  const handleQuantityChange = async (id, delta) => {
+    const item = cartItems.find((item) => item.productId === id);
+    if (!item) return;
+
+    const newQuantity = Math.max(1, item.quantity + delta);
+    try {
+      await axios.post("api/basket/update", {
+        productId: id,
+        quantity: newQuantity,
+      });
+      setCartItems((prevCart) =>
+        prevCart.map((item) =>
+          item.productId === id ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } catch (error) {
+      console.error("Miktar güncellenemedi:", error);
+    }
   };
+
+  const handleRemoveItem = async (id) => {
+    try {
+      await axios.post("api/basket/remove", { productId: id });
+      setCartItems((prevCart) => prevCart.filter((item) => item.productId !== id));
+    } catch (error) {
+      console.error("Ürün silinemedi:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -33,6 +59,10 @@ export default function Cart() {
   );
   const shipping = cartItems.length > 0 ? 10.0 : 0;
   const total = subtotal + shipping;
+
+  if (loading) {
+    return <p className="text-center text-gray-500">Loading...</p>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -42,7 +72,7 @@ export default function Cart() {
       <div className="space-y-6">
         {cartItems.map((item) => (
           <div
-            key={item.id}
+            key={item.productId}
             className="flex items-center justify-between bg-white shadow-lg rounded-lg p-4"
           >
             <div className="flex items-center gap-4">
@@ -53,25 +83,30 @@ export default function Cart() {
               />
               <div>
                 <h2 className="text-lg font-bold">{item.title}</h2>
-                <p className="text-gray-600">${item.price.toFixed(2)}</p>
+                <p className="text-gray-600">
+                  {Intl.NumberFormat("tr-TR", {
+                    style: "currency",
+                    currency: "TRY",
+                  }).format(item.price)}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => handleQuantityChange(item.id, -1)}
+                onClick={() => handleQuantityChange(item.productId, -1)}
                 className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-xl font-bold hover:bg-gray-300"
               >
                 -
               </button>
               <span className="text-lg">{item.quantity}</span>
               <button
-                onClick={() => handleQuantityChange(item.id, 1)}
+                onClick={() => handleQuantityChange(item.productId, 1)}
                 className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-xl font-bold hover:bg-gray-300"
               >
                 +
               </button>
               <button
-                onClick={() => handleRemoveItem(item.id)}
+                onClick={() => handleRemoveItem(item.productId)}
                 className="w-8 h-8 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600"
               >
                 ✕
@@ -91,24 +126,38 @@ export default function Cart() {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>
+              {Intl.NumberFormat("tr-TR", {
+                style: "currency",
+                currency: "TRY",
+              }).format(subtotal)}
+            </span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>${shipping.toFixed(2)}</span>
+            <span>
+              {Intl.NumberFormat("tr-TR", {
+                style: "currency",
+                currency: "TRY",
+              }).format(shipping)}
+            </span>
           </div>
         </div>
         <hr className="my-4" />
-        <div className="flex justify-between text-lg font-bold">
+        <div className="flex justify-between text-lg font-bold mb-2">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>
+            {Intl.NumberFormat("tr-TR", {
+              style: "currency",
+              currency: "TRY",
+            }).format(total)}
+          </span>
         </div>
-        <button
-          className="mt-6 w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-opacity-90"
+        <Button
           onClick={() => alert("Proceeding to checkout...")}
         >
           Proceed to Checkout
-        </button>
+        </Button>
       </div>
     </div>
   );

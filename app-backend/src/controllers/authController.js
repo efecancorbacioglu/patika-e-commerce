@@ -38,7 +38,7 @@ const authController = {
                 return res.status(409).send({ response: { message: response.message } });
             }
     
-            res.status(201).send({ response: { message: 'User successfully registered', token: response.token } });
+            res.status(201).send({ response: response });
         } catch (e) {
             console.error(e, 'error');
             res.status(500).send({ response: { message: 'Internal server error' } });

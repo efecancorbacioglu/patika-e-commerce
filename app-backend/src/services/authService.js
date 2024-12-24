@@ -9,11 +9,16 @@ async function login(userParams){
         if(!user || !(await bcrypt.compare(password, user.password))){
             return { status: 401, message: 'Invalid username or password' };
         }
-
-        const token = jwt.sign({email:user.email}, process.env.JWT_SECRET,{
+        const token = jwt.sign({email:user.email, id: user.id},  process.env.JWT_SECRET,{
             expiresIn: '1h'
         })
-        return { status: 200, token, message: 'Success' };
+        const userData = {
+            id: user.id,
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+        }
+        return { status: 200, token, message: 'Success' , user: userData };
     }catch(e){
         console.log(e);
         return { status: 500, message: 'Internal server error' };
@@ -39,14 +44,18 @@ async function register(userParams) {
         });
 
         await newUser.save();
-
         const token = jwt.sign(
-            { email: newUser.email },
+            { email: newUser.email, id: newUser.id },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
-
-        return { status: 201, message: 'User successfully registered', token };
+        const userData = {
+            id: newUser.id,
+            name: newUser.name,
+            surname: newUser.surname,
+            email: newUser.email,
+        }
+        return { status: 201, message: 'User successfully registered', token, user: userData };
     } catch (e) {
         console.error(e);
         return { status: 500, message: 'Internal server error' };

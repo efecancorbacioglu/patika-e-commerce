@@ -1,4 +1,5 @@
 const mongooseOrder = require("../models/orderModel");
+const { redisCon } = require("../utils/redis");
 
 async function createOrder(params) {
   const { userId, products, totalAmount } = params;
@@ -10,6 +11,10 @@ async function createOrder(params) {
       totalAmount,
     });
     await newOrder.save();
+
+    const client = await redisCon();
+    const basketKey = `basket:${userId}`;
+    await client.del(basketKey);
     console.log("Yeni sipariş oluşturuldu:", newOrder);
     return newOrder;
   } catch (e) { 

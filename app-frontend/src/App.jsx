@@ -21,7 +21,7 @@ function App() {
       {/* Layout kullanılan sayfalar */}
       <Route path="/" element={<ProtectedRoute><DefaultLayout><HomePage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><DefaultLayout><ProductsPage /></DefaultLayout></ProtectedRoute>} />
-      <Route path="/products/:id" element={<ProtectedRoute><DefaultLayout><ProductDetails /></DefaultLayout></ProtectedRoute>} />
+      <Route path="/product/:id" element={<ProtectedRoute><DefaultLayout><ProductDetails /></DefaultLayout></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><DefaultLayout><CartPage /></DefaultLayout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><DefaultLayout><ProfilePage /></DefaultLayout></ProtectedRoute>} />
     </Routes>

@@ -54,10 +54,36 @@ export default function Cart() {
     setIsModalOpen(true);
   };
 
-  const handleConfirm = () => {
-    alert("Order placed successfully!");
-    setIsModalOpen(false);
+  const handleConfirm = async () => {
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+    try {
+      const orderData = {
+        userId:  user.id,
+        products: cartItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        totalAmount: cartItems.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        ),
+      };
+  
+      const response = await axios.post("api/orders/create", orderData);
+  
+      if (response.status === 200 || response.status === 201) {
+        alert("Order placed successfully!");
+        setCartItems([]);
+      } else {
+        alert("Failed to place order. Please try again.");
+      }
+    } catch (error) {
+      alert("An error occurred while placing the order.");
+    } finally {
+      setIsModalOpen(false);
+    }
   };
+  
 
   useEffect(() => {
     fetchCart();
@@ -92,7 +118,7 @@ export default function Cart() {
                 className="w-16 h-16 rounded-lg object-cover"
               />
               <div>
-                <h2 className="text-lg font-bold">{item.title}</h2>
+                <h2 className="text-lg font-bold">{item.name}</h2>
                 <p className="text-gray-600">
                   {Intl.NumberFormat("tr-TR", {
                     style: "currency",

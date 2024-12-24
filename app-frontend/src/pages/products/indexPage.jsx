@@ -22,10 +22,6 @@ function Products() {
         fetchProducts();
     }, []);
 
-    const handleAddToCart = (product) => {
-        alert(`${product.title} added to cart!`);
-    };
-
     const filteredProducts = products.filter((product) => {
         const price = product.price;
         if (priceFilter === "low") return price < 1000; 
@@ -61,7 +57,7 @@ function Products() {
             </div>
 
             {/* Ürün Listesi */}
-            <ProductList products={filteredProducts} onAddToCart={handleAddToCart} />
+            <ProductList products={filteredProducts} />
         </div>
     );
 }

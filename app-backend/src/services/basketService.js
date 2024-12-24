@@ -1,4 +1,5 @@
 const { redisCon } = require("../utils/redis");
+const products = require("../models/productModel");
 
 async function addToBasket(userId, productId, quantity = 1) {
   try {
@@ -57,10 +58,28 @@ async function getBasket(userId) {
     const basketKey = `basket:${userId}`;
 
     const basket = await client.hGetAll(basketKey);
-    return basket;
+
+    if (!basket || Object.keys(basket).length === 0) {
+      return [];
+    }
+
+    const detailedBasket = await Promise.all(
+      Object.entries(basket).map(async ([productId, quantity]) => {
+        const product = await products.findById(productId);
+        return {
+          productId,
+          quantity: parseInt(quantity),
+          title: product.title,
+          price: product.price,
+          image: product.image,
+        };
+      })
+    );
+
+    return detailedBasket;
   } catch (e) {
-    console.error("Sepeti getirme hatası:", e);
-    return null;
+    console.error("Detaylı sepet getirilemedi:", e);
+    return [];
   }
 }
 
